@@ -11,7 +11,7 @@ Follow the Capstones skill `capstone-signal-design` (CheckMyDevice template) for
 - Light canvas `#F4F7FB`, white surfaces, charcoal `#0C1222` text.
 - Brand accent deep teal `#0F766E` (bright `#14B8A6` on hover) - not purple, brass, or terracotta.
 - Fonts: Sora (display) + Figtree (body). IBM Plex Mono only for code/micro-labels.
-- Brand mark / favicon must encode the product job (Checkpoint = embed brackets `<>` + check). Keep BrandMark.tsx and public/favicon.svg identical. No nested box-in-box icons.
+- Brand mark / favicon follows the CheckMyDevice instrument grammar: dark plate, inset rim, one product-specific signal, one live-status light. Checkpoint uses a lead signal crossing scanner posts. Keep BrandMark.tsx and public/favicon.svg identical; verify at 16px.
 - Never use em dashes (`—`) or en dashes (`–`) in UI copy or metadata - use hyphens, commas, or periods.
 - Landing requires: Lenis smooth scroll, Framer Motion chapters (`once: true`), **balanced left+right hero art** with center text safe zone (visible side opacity ~0.75-0.95, dual radial masks / side panels), signal trace, section badges, dual CTAs.
 - Landing interactivity is required: feature, step, and trust/guarantee cards must respond to hover and focus (teal wash, border tint, icon/title color shift, slight lift) like CheckMyDevice privacy items. Do not ship static decorative grids.

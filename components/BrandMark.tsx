@@ -2,8 +2,8 @@ import Link from "next/link";
 import type { MouseEventHandler } from "react";
 
 /**
- * Checkpoint brand mark: embed brackets + check.
- * Reads as "embeddable" and "checkpoint" at favicon size.
+ * Checkpoint brand mark: a lead signal crossing a validated boundary.
+ * Uses one bold metaphor plus a live status light so it stays clear at 16px.
  */
 export function BrandMark({
   size = 28,
@@ -22,31 +22,42 @@ export function BrandMark({
       className={className}
       aria-hidden="true"
     >
-      <rect width="64" height="64" rx="16" fill="#0F766E" />
-      {/* Left embed bracket < */}
+      <rect x="2" y="2" width="60" height="60" rx="14" fill="#0F1118" />
+      <rect
+        x="2.75"
+        y="2.75"
+        width="58.5"
+        height="58.5"
+        rx="13.25"
+        fill="none"
+        stroke="#252A35"
+        strokeWidth="1.5"
+      />
+      {/* Incoming and accepted lead signal */}
       <path
-        d="M24 16 12 32l12 16"
-        stroke="#FFFFFF"
-        strokeWidth="5"
+        d="M10 32H25M39 32H54"
+        stroke="#16A9AB"
+        strokeWidth="4.5"
+        strokeLinecap="round"
+      />
+      {/* Scanner posts form the checkpoint boundary */}
+      <path
+        d="M25 18V46M39 18V46"
+        stroke="#DCE6E8"
+        strokeWidth="4"
+        strokeLinecap="round"
+      />
+      {/* Validated payload */}
+      <path
+        d="m28 32 3 3 6-7"
+        stroke="#2FA84F"
+        strokeWidth="3.75"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      {/* Right embed bracket > */}
-      <path
-        d="M40 16l12 16-12 16"
-        stroke="#FFFFFF"
-        strokeWidth="5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      {/* Checkpoint check */}
-      <path
-        d="M25 33.5 30.5 39 41 25"
-        stroke="#14B8A6"
-        strokeWidth="5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+      {/* Live platform status */}
+      <circle cx="50" cy="14" r="5.25" fill="#0F1118" />
+      <circle cx="50" cy="14" r="3.75" fill="#2FA84F" />
     </svg>
   );
 }

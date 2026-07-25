@@ -6,8 +6,8 @@ export const metadata: Metadata = {
   description:
     "Embed popover, signup, and CTA widgets. Capture leads safely with CORS, rate limits, spam control, and geo enrichment.",
   icons: {
-    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
-    shortcut: ["/favicon.svg"],
+    icon: [{ url: "/favicon.svg?v=2", type: "image/svg+xml" }],
+    shortcut: ["/favicon.svg?v=2"],
   },
   openGraph: {
     title: "Checkpoint",
@@ -34,7 +34,7 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@500;600;700&display=swap"
           rel="stylesheet"
         />
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="icon" href="/favicon.svg?v=2" type="image/svg+xml" />
       </head>
       <body className="min-h-screen antialiased font-sans text-ink bg-canvas">
         {children}

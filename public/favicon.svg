@@ -1,24 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
-  <rect width="64" height="64" rx="16" fill="#0F766E"/>
-  <path
-    d="M24 16 12 32l12 16"
-    stroke="#FFFFFF"
-    stroke-width="5"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  />
-  <path
-    d="M40 16l12 16-12 16"
-    stroke="#FFFFFF"
-    stroke-width="5"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  />
-  <path
-    d="M25 33.5 30.5 39 41 25"
-    stroke="#14B8A6"
-    stroke-width="5"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title description">
+  <title id="title">Checkpoint</title>
+  <desc id="description">A lead signal passing through a secure checkpoint with an active status light.</desc>
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="#0F1118"/>
+  <rect x="2.75" y="2.75" width="58.5" height="58.5" rx="13.25" fill="none" stroke="#252A35" stroke-width="1.5"/>
+
+  <!-- Public signal enters from the left and exits after validation. -->
+  <path d="M10 32H25M39 32H54" fill="none" stroke="#16A9AB" stroke-width="4.5" stroke-linecap="round"/>
+
+  <!-- Two scanner posts form the security boundary. -->
+  <path d="M25 18V46M39 18V46" fill="none" stroke="#DCE6E8" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- The accepted payload is the only bright element inside the boundary. -->
+  <path d="m28 32 3 3 6-7" fill="none" stroke="#2FA84F" stroke-width="3.75" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Live platform status, matching the CheckMyDevice instrument language. -->
+  <circle cx="50" cy="14" r="5.25" fill="#0F1118"/>
+  <circle cx="50" cy="14" r="3.75" fill="#2FA84F"/>
 </svg>

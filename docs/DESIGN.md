@@ -30,7 +30,11 @@ Avoid Inter, Roboto, Arial, Geist, Special Elite, and all-typewriter layouts.
 
 ## Brand mark
 
-Teal rounded square with **white embed brackets** `<>` and a **bright teal check** between them - "embeddable" + "checkpoint" in one glyph. `BrandMark.tsx` and `public/favicon.svg` must stay identical. No nested boxes, no generic lone check.
+Dark instrument plate with a subtle inset rim, a teal lead signal crossing two
+light scanner posts, a green accepted mark inside the boundary, and one live
+status light. The single scene reads as a secure checkpoint at 16px without
+stacking generic code brackets. `BrandMark.tsx` and `public/favicon.svg` must
+stay identical.
 
 ## Copy
 
