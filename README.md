@@ -23,13 +23,33 @@ Checkpoint is the whole platform for that job. A customer pastes a single `<scri
 
 ## The embed, on someone else's site
 
-The fixture below is served from `http://localhost:5555` while the widget script, config, and submission endpoint all live on `http://localhost:3000`. That is a real cross-origin request, not a same-origin demo.
+The fixture is a full fictional storefront, Acme Outfitters, served from `http://localhost:5555` while the widget script, config, and submission endpoint all live on `http://localhost:3000`. Building it as a real-looking site is the point: the widget has to sit inside someone else's design language without inheriting any of it.
 
-![Checkpoint widget rendered on a foreign origin customer site](docs/images/checkpoint-embed.png)
+![Checkpoint widget rendered on the Acme Outfitters foreign origin storefront](docs/images/checkpoint-embed.png)
 
 Submitting returns `201` and the widget stamps the result inline. The row appears in the owner dashboard with its geo enrichment and verdict.
 
-![Checkpoint widget showing an accepted submission response](docs/images/checkpoint-embed-accepted.png)
+![Checkpoint widget showing an accepted submission response on the customer storefront](docs/images/checkpoint-embed-accepted.png)
+
+### The embed reports itself
+
+A widget that fails silently is the worst kind to debug, so the script is explicit about its own state.
+
+| Signal | Purpose |
+| --- | --- |
+| `checkpoint:ready` event | Fired on `window` after a successful mount, with the widget id and type. |
+| `checkpoint:error` event | Fired with a readable reason, for example a stale widget id returning `404`. |
+| `data-debug="true"` | Opt-in. Renders a visible failure card instead of only logging. Customer sites that omit it still fail quietly. |
+
+The fixture uses all three to drive its **cross-origin embed probe**, the strip that reports the widget id in use and whether the mount succeeded.
+
+Because `pnpm db:seed` mints a new widget id, a cached copy of the page can point at an id that no longer exists. The probe names that failure instead of rendering nothing, and `?w=<widgetId>` overrides the baked-in id without editing the file:
+
+```
+http://localhost:5555/customer-site?w=<widgetId>
+```
+
+Use the clean URL for the override. `serve` redirects `/customer-site.html` to `/customer-site` and drops the query string.
 
 ## The hardened boundary
 
@@ -85,7 +105,7 @@ pnpm dev
 
 Open `http://localhost:3000` and sign in with `tenant_a_key_demo_001`.
 
-The seed prints the demo widget id and the exact embed snippet, and rewrites `fixtures/customer-site.html` with the fresh id so the cross-origin demo works immediately.
+The seed prints the demo widget id and the exact embed snippet, and rewrites the widget id inside `fixtures/customer-site.html` so the cross-origin demo works immediately.
 
 ### Serve the foreign origin
 
@@ -93,10 +113,12 @@ In a second terminal:
 
 ```bash
 pnpm dev:fixture
-# http://localhost:5555/customer-site.html
+# http://localhost:5555/customer-site
 ```
 
 Submit the form there, then refresh `/dashboard`. The row appears with a location and a verdict.
+
+If the widget does not appear, read the embed probe on the page rather than the console. A stale widget id after a reseed is the usual cause, and a hard refresh (`Ctrl+Shift+R`) or `?w=<widgetId>` fixes it.
 
 ## Prove it yourself
 
@@ -115,6 +137,14 @@ curl -s -o /dev/null -w "%{http_code}\n" \
 **Config caching and CORS**
 
 Open DevTools on the fixture page. `GET /api/widgets/:id/config` returns `ETag` and `Cache-Control`; the submission response echoes `Access-Control-Allow-Origin: http://localhost:5555` rather than a wildcard.
+
+**The embed fails loudly, not silently**
+
+```
+http://localhost:5555/customer-site?w=stale_id_does_not_exist
+```
+
+The probe turns red with `could not load widget config - unknown or stale widget id [HTTP 404]`, a debug card appears, and no widget mounts. Swap in a real id and the same probe reports `mounted cross-origin, type=signup`.
 
 **Rate limiting**
 
@@ -182,8 +212,8 @@ lib/rate-limit       swappable RateLimiter interface + token bucket
 lib/geo              provider A, provider B, fallback chain
 lib/email            notify wrapper that cannot throw past the handler
 lib/cdn              widget config rendering and cache headers
-public/widget.js     the embeddable script
-fixtures/            foreign-origin customer site for the CORS demo
+public/widget.js     the embeddable script, with ready/error events
+fixtures/            Acme Outfitters storefront on a foreign origin
 ```
 
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) - request-flow contracts
@@ -193,7 +223,11 @@ fixtures/            foreign-origin customer site for the CORS demo
 
 ## Design
 
-The interface uses **Clear Signal**: a cool mist canvas (`#F4F7FB`), deep teal accent (`#0F766E`), Sora for display and Figtree for body, with IBM Plex Mono reserved for ids, snippets, and micro-labels. Marketing and dashboard share one system, one brand mark, and one motion stack (Lenis smooth scroll plus Framer Motion), so the product does not change personality after sign-in. Full rules live in [`docs/DESIGN.md`](docs/DESIGN.md) and the shared Capstones skill `capstone-signal-design`.
+The interface uses **Clear Signal**: a cool mist canvas (`#F4F7FB`), deep teal accent (`#0F766E`), Sora for display and Figtree for body, with IBM Plex Mono reserved for ids, snippets, and micro-labels. Marketing and dashboard share one system, one brand mark, and one motion stack (Lenis smooth scroll plus Framer Motion), so the product does not change personality after sign-in.
+
+The brand mark reads as the product's job: a lead signal crossing two scanner posts on a dark instrument plate, with a live status light. `components/BrandMark.tsx` and `public/favicon.svg` are the same geometry, checked at 16px so the tab icon stays legible.
+
+The fixture storefront deliberately does **not** use this system. It runs its own forest-green outdoor palette and serif display type, which is what makes the embed a fair test: the widget keeps its own styling on a site that shares none of it. Full rules live in [`docs/DESIGN.md`](docs/DESIGN.md) and the shared Capstones skill `capstone-signal-design`.
 
 ## Limitations
 
