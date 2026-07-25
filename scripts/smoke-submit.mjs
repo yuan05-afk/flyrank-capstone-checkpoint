@@ -1,4 +1,4 @@
-const WID = "cms06qmo90003so5akiizgim8";
+const WID = "cms072iz00003gqsr15e4iwwm";
 const base = "http://localhost:3000";
 
 async function main() {

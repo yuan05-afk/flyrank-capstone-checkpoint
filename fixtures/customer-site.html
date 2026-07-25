@@ -3,67 +3,788 @@
   <head>
     <meta charset="utf-8" />
     <meta http-equiv="cache-control" content="no-store" />
-    <title>Customer Site (foreign origin)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Acme Outfitters field equipment, shown as the foreign-origin Checkpoint embed fixture."
+    />
+    <title>Acme Outfitters | Field equipment for the long way home</title>
     <style>
+      :root {
+        --forest: #153d2f;
+        --forest-2: #225b45;
+        --moss: #7aa46b;
+        --lime: #d9f99d;
+        --paper: #f5f7f2;
+        --surface: #ffffff;
+        --ink: #13231b;
+        --muted: #647168;
+        --line: #dce5dc;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
       body {
-        font-family: Georgia, serif;
-        max-width: 40rem;
-        margin: 3rem auto;
-        padding: 0 1rem;
-        color: #222;
-        background: #f7f4ef;
+        margin: 0;
+        min-height: 100vh;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 8% 18%, rgba(122, 164, 107, 0.15), transparent 28rem),
+          radial-gradient(circle at 92% 76%, rgba(34, 91, 69, 0.11), transparent 30rem),
+          var(--paper);
+        font-family:
+          "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
       }
-      code {
-        background: #eee;
-        padding: 0.1rem 0.3rem;
+
+      button,
+      a {
+        font: inherit;
       }
-      .probe {
-        margin-top: 2rem;
-        border: 1px solid #ddd7cc;
-        border-left: 4px solid #999;
-        background: #fffdf8;
-        padding: 0.9rem 1rem;
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .shell {
+        width: min(1180px, calc(100% - 40px));
+        margin: 0 auto;
+      }
+
+      .topbar {
+        position: relative;
+        z-index: 10;
+        border-bottom: 1px solid rgba(21, 61, 47, 0.09);
+        background: rgba(245, 247, 242, 0.8);
+        backdrop-filter: blur(18px);
+      }
+
+      .nav {
+        min-height: 72px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 11px;
+        font-weight: 760;
+        letter-spacing: -0.035em;
+        font-size: 1.08rem;
+      }
+
+      .brand-mark {
+        display: grid;
+        place-items: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 11px;
+        color: var(--lime);
+        background: var(--forest);
+        box-shadow: 0 10px 25px -17px rgba(21, 61, 47, 0.9);
+        transition: transform 180ms ease;
+      }
+
+      .brand:hover .brand-mark,
+      .brand:focus-visible .brand-mark {
+        transform: rotate(-4deg) translateY(-2px);
+      }
+
+      .brand-mark svg {
+        width: 23px;
+        height: 23px;
+      }
+
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 28px;
+        font-size: 0.86rem;
+        color: var(--muted);
+      }
+
+      .nav-links a {
+        transition: color 160ms ease;
+      }
+
+      .nav-links a:hover,
+      .nav-links a:focus-visible {
+        color: var(--forest);
+      }
+
+      .nav-action,
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        border: 0;
+        border-radius: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        transition:
+          transform 180ms ease,
+          box-shadow 180ms ease,
+          background 180ms ease;
+      }
+
+      .nav-action {
+        padding: 10px 15px;
+        color: #fff;
+        background: var(--forest);
+      }
+
+      .button {
+        min-height: 48px;
+        padding: 0 19px;
+      }
+
+      .button-primary {
+        color: #fff;
+        background: var(--forest);
+        box-shadow: 0 16px 28px -18px rgba(21, 61, 47, 0.9);
+      }
+
+      .button-secondary {
+        color: var(--forest);
+        background: rgba(255, 255, 255, 0.72);
+        border: 1px solid var(--line);
+      }
+
+      .nav-action:hover,
+      .button:hover,
+      .nav-action:focus-visible,
+      .button:focus-visible {
+        transform: translateY(-2px);
+      }
+
+      .button-primary:hover,
+      .button-primary:focus-visible,
+      .nav-action:hover,
+      .nav-action:focus-visible {
+        background: var(--forest-2);
+        box-shadow: 0 18px 34px -18px rgba(21, 61, 47, 0.95);
+      }
+
+      a:focus-visible,
+      button:focus-visible {
+        outline: 3px solid rgba(122, 164, 107, 0.45);
+        outline-offset: 3px;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 0.88fr) minmax(420px, 1.12fr);
+        gap: clamp(38px, 7vw, 88px);
+        align-items: center;
+        padding: 58px 0 38px;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 18px;
+        padding: 7px 10px;
+        border: 1px solid rgba(21, 61, 47, 0.14);
+        border-radius: 999px;
+        color: var(--forest-2);
+        background: rgba(255, 255, 255, 0.6);
         font-family: ui-monospace, Consolas, monospace;
-        font-size: 0.8rem;
-        line-height: 1.6;
-        color: #444;
+        font-size: 0.68rem;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
       }
+
+      .eyebrow-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--moss);
+        box-shadow: 0 0 0 4px rgba(122, 164, 107, 0.14);
+      }
+
+      h1 {
+        max-width: 620px;
+        margin: 0;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: clamp(3.25rem, 6vw, 5.8rem);
+        line-height: 0.94;
+        letter-spacing: -0.055em;
+        font-weight: 700;
+      }
+
+      h1 span {
+        display: block;
+        color: var(--forest-2);
+      }
+
+      .lede {
+        max-width: 555px;
+        margin: 24px 0 26px;
+        color: var(--muted);
+        font-size: 1.02rem;
+        line-height: 1.75;
+      }
+
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 11px;
+      }
+
+      .micro-proof {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 32px;
+      }
+
+      .proof {
+        min-width: 0;
+        padding: 12px 0;
+        border-top: 1px solid rgba(21, 61, 47, 0.15);
+      }
+
+      .proof strong {
+        display: block;
+        margin-bottom: 4px;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 1.18rem;
+      }
+
+      .proof span {
+        color: var(--muted);
+        font-size: 0.72rem;
+      }
+
+      .hero-visual {
+        position: relative;
+        min-height: 520px;
+        overflow: hidden;
+        border-radius: 32px;
+        isolation: isolate;
+        background:
+          linear-gradient(145deg, rgba(217, 249, 157, 0.08), transparent 44%),
+          var(--forest);
+        box-shadow: 0 32px 70px -42px rgba(21, 61, 47, 0.85);
+      }
+
+      .hero-visual::before {
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        background:
+          radial-gradient(circle at 78% 22%, rgba(217, 249, 157, 0.18), transparent 24%),
+          radial-gradient(circle at 15% 82%, rgba(122, 164, 107, 0.2), transparent 30%);
+        content: "";
+      }
+
+      .landscape {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      .visual-label {
+        position: absolute;
+        top: 24px;
+        left: 25px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: rgba(255, 255, 255, 0.78);
+        font-family: ui-monospace, Consolas, monospace;
+        font-size: 0.67rem;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+      }
+
+      .visual-label::before {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--lime);
+        content: "";
+        box-shadow: 0 0 0 5px rgba(217, 249, 157, 0.1);
+      }
+
+      .pack-card {
+        position: absolute;
+        top: 74px;
+        right: 32px;
+        width: min(250px, 45%);
+        padding: 19px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 19px;
+        color: #fff;
+        background: rgba(255, 255, 255, 0.09);
+        backdrop-filter: blur(16px);
+        transition:
+          transform 220ms ease,
+          background 220ms ease;
+      }
+
+      .pack-card:hover {
+        transform: translateY(-4px);
+        background: rgba(255, 255, 255, 0.13);
+      }
+
+      .pack-card small {
+        color: rgba(255, 255, 255, 0.6);
+        font-family: ui-monospace, Consolas, monospace;
+        font-size: 0.62rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .pack-card h2 {
+        margin: 10px 0 7px;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 1.45rem;
+      }
+
+      .pack-card p {
+        margin: 0;
+        color: rgba(255, 255, 255, 0.68);
+        font-size: 0.78rem;
+        line-height: 1.5;
+      }
+
+      .field-card {
+        position: absolute;
+        left: 24px;
+        bottom: 24px;
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 13px;
+        align-items: center;
+        max-width: 270px;
+        padding: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 17px;
+        color: #fff;
+        background: rgba(10, 35, 26, 0.72);
+        backdrop-filter: blur(14px);
+      }
+
+      .field-icon {
+        display: grid;
+        place-items: center;
+        width: 42px;
+        height: 42px;
+        border-radius: 13px;
+        color: var(--forest);
+        background: var(--lime);
+      }
+
+      .field-card b {
+        display: block;
+        margin-bottom: 3px;
+        font-size: 0.84rem;
+      }
+
+      .field-card span {
+        color: rgba(255, 255, 255, 0.63);
+        font-size: 0.7rem;
+      }
+
+      .trust-row {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        padding: 0 0 28px;
+      }
+
+      .trust-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-height: 68px;
+        padding: 14px 16px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.65);
+        transition:
+          transform 180ms ease,
+          border-color 180ms ease,
+          background 180ms ease;
+      }
+
+      .trust-item:hover,
+      .trust-item:focus-visible {
+        transform: translateY(-3px);
+        border-color: rgba(34, 91, 69, 0.35);
+        background: #fff;
+      }
+
+      .trust-icon {
+        display: grid;
+        flex: 0 0 auto;
+        place-items: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 11px;
+        color: var(--forest-2);
+        background: rgba(122, 164, 107, 0.14);
+      }
+
+      .trust-item b {
+        display: block;
+        margin-bottom: 2px;
+        font-size: 0.78rem;
+      }
+
+      .trust-item span {
+        color: var(--muted);
+        font-size: 0.69rem;
+      }
+
+      .probe-wrap {
+        padding-bottom: 44px;
+      }
+
+      .probe {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        max-width: 780px;
+        min-height: 58px;
+        border: 1px solid var(--line);
+        border-left: 4px solid #94a39a;
+        border-radius: 14px;
+        padding: 11px 14px;
+        color: var(--muted);
+        background: rgba(255, 255, 255, 0.72);
+        font-family: ui-monospace, Consolas, monospace;
+        font-size: 0.68rem;
+        line-height: 1.55;
+      }
+
+      .probe-copy {
+        min-width: 0;
+      }
+
       .probe b {
         display: block;
-        font-family: Georgia, serif;
-        font-size: 0.95rem;
-        color: #222;
-        margin-bottom: 0.4rem;
+        color: var(--ink);
+        font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+        font-size: 0.75rem;
+        margin-bottom: 2px;
       }
+
+      .probe span {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .probe-led {
+        flex: 0 0 auto;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #94a39a;
+        box-shadow: 0 0 0 5px rgba(148, 163, 154, 0.14);
+      }
+
       .probe.ok {
         border-left-color: #15803d;
       }
+
+      .probe.ok .probe-led {
+        background: #22a447;
+        box-shadow: 0 0 0 5px rgba(34, 164, 71, 0.13);
+      }
+
       .probe.bad {
         border-left-color: #dc2626;
+      }
+
+      .probe.bad .probe-led {
+        background: #dc2626;
+        box-shadow: 0 0 0 5px rgba(220, 38, 38, 0.11);
+      }
+
+      @media (max-width: 900px) {
+        .nav-links {
+          display: none;
+        }
+
+        .hero {
+          grid-template-columns: 1fr;
+          padding-top: 42px;
+        }
+
+        .hero-copy {
+          max-width: 700px;
+        }
+
+        .hero-visual {
+          min-height: 440px;
+        }
+      }
+
+      @media (max-width: 620px) {
+        .shell {
+          width: min(100% - 28px, 1180px);
+        }
+
+        .nav-action {
+          display: none;
+        }
+
+        .hero {
+          gap: 28px;
+          padding-top: 32px;
+        }
+
+        h1 {
+          font-size: clamp(3rem, 15vw, 4.4rem);
+        }
+
+        .micro-proof,
+        .trust-row {
+          grid-template-columns: 1fr;
+        }
+
+        .hero-visual {
+          min-height: 390px;
+          border-radius: 24px;
+        }
+
+        .pack-card {
+          right: 18px;
+          width: 55%;
+        }
+
+        .field-card {
+          right: 18px;
+          left: 18px;
+          max-width: none;
+        }
+
+        .probe {
+          align-items: flex-start;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+
+        *,
+        *::before,
+        *::after {
+          transition-duration: 0.01ms !important;
+        }
       }
     </style>
   </head>
   <body>
-    <h1>Acme Outfitters</h1>
-    <p>
-      This page is intentionally <strong>not</strong> served from the widget
-      platform. Serve it on port <code>5555</code> (or open via
-      <code>file://</code>) so the embed hits
-      <code>localhost:3000</code> cross-origin - the real CORS proof.
-    </p>
-    <p>The Checkpoint widget mounts bottom-right.</p>
+    <header class="topbar">
+      <nav class="nav shell" aria-label="Main navigation">
+        <a class="brand" href="#" aria-label="Acme Outfitters home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 32 32" fill="none">
+              <path
+                d="m5 23 7-12 4 7 3-5 8 10H5Z"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M8 25h16"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+              />
+            </svg>
+          </span>
+          <span>Acme Outfitters</span>
+        </a>
+        <div class="nav-links">
+          <a href="#field-kit">Field kit</a>
+          <a href="#standards">Standards</a>
+          <a href="#journal">Field journal</a>
+        </div>
+        <a class="nav-action" href="#field-kit">
+          Shop the trail
+          <span aria-hidden="true">→</span>
+        </a>
+      </nav>
+    </header>
 
-    <div class="probe" id="probe">
-      <b>Embed probe</b>
-      <span id="probe-id">widget id: resolving...</span><br />
-      <span id="probe-state">state: loading widget.js</span>
-    </div>
+    <main>
+      <section class="hero shell" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <div class="eyebrow">
+            <span class="eyebrow-dot" aria-hidden="true"></span>
+            Field-tested / Spring 2026
+          </div>
+          <h1 id="hero-title">
+            Built for the
+            <span>long way home.</span>
+          </h1>
+          <p class="lede">
+            Trail equipment for people who keep walking after the map gets
+            quiet. Thoughtful materials, repairable parts, and no disposable
+            shortcuts.
+          </p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#field-kit">
+              Explore field kit
+              <span aria-hidden="true">→</span>
+            </a>
+            <a class="button button-secondary" href="#journal">
+              Read the field notes
+            </a>
+          </div>
+          <div class="micro-proof" aria-label="Product guarantees">
+            <div class="proof">
+              <strong>12 years</strong>
+              <span>repair guarantee</span>
+            </div>
+            <div class="proof">
+              <strong>68%</strong>
+              <span>recycled materials</span>
+            </div>
+            <div class="proof">
+              <strong>4.9 / 5</strong>
+              <span>from field crews</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-visual" id="field-kit">
+          <div class="visual-label">Route 08 / North Ridge</div>
+          <svg
+            class="landscape"
+            viewBox="0 0 680 560"
+            preserveAspectRatio="xMidYMid slice"
+            aria-hidden="true"
+          >
+            <defs>
+              <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#225b45" />
+                <stop offset="1" stop-color="#153d2f" />
+              </linearGradient>
+              <linearGradient id="ridge" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#91b47f" />
+                <stop offset="1" stop-color="#52785e" />
+              </linearGradient>
+            </defs>
+            <rect width="680" height="560" fill="url(#sky)" />
+            <circle cx="145" cy="135" r="74" fill="#d9f99d" opacity=".12" />
+            <path
+              d="M0 356 92 265l65 67 98-142 92 133 71-84 90 117 83-94 109 95v203H0V356Z"
+              fill="#315f4a"
+              opacity=".72"
+            />
+            <path
+              d="M0 424 101 344l76 46 102-123 89 118 74-51 88 75 68-39 82 63v127H0V424Z"
+              fill="url(#ridge)"
+            />
+            <path
+              d="M324 560c-8-66 8-111 44-136 31-22 35-67 12-135"
+              fill="none"
+              stroke="#d9f99d"
+              stroke-width="12"
+              stroke-linecap="round"
+              opacity=".68"
+            />
+            <g fill="#153d2f" opacity=".8">
+              <path d="m85 424 22-61 22 61h-14l15 39H84l15-39H85Z" />
+              <path d="m513 412 25-70 25 70h-15l17 45h-54l17-45h-15Z" />
+              <path d="m568 438 19-53 19 53h-12l13 34h-41l13-34h-11Z" />
+              <path d="m154 447 18-50 18 50h-11l12 32h-39l12-32h-10Z" />
+            </g>
+          </svg>
+
+          <article class="pack-card" tabindex="0">
+            <small>Expedition series / 01</small>
+            <h2>North Ridge 38L</h2>
+            <p>
+              Weather-sealed canvas, an aluminum frame, and field-replaceable
+              hardware for multi-day miles.
+            </p>
+          </article>
+
+          <div class="field-card">
+            <span class="field-icon" aria-hidden="true">
+              <svg width="23" height="23" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M12 3v18M3 12h18M6.5 6.5l11 11M17.5 6.5l-11 11"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                />
+                <circle cx="12" cy="12" r="3" fill="currentColor" />
+              </svg>
+            </span>
+            <span>
+              <b>Field signal active</b>
+              <span>Lead desk embedded by Checkpoint</span>
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <section class="trust-row shell" id="standards" aria-label="Acme standards">
+        <article class="trust-item" tabindex="0">
+          <span class="trust-icon" aria-hidden="true">↻</span>
+          <span>
+            <b>Repair before replace</b>
+            <span>Parts stay available for 12 years.</span>
+          </span>
+        </article>
+        <article class="trust-item" tabindex="0">
+          <span class="trust-icon" aria-hidden="true">◇</span>
+          <span>
+            <b>Traceable materials</b>
+            <span>Every textile has a source record.</span>
+          </span>
+        </article>
+        <article class="trust-item" tabindex="0">
+          <span class="trust-icon" aria-hidden="true">✓</span>
+          <span>
+            <b>30-night trail test</b>
+            <span>Use it outside, not just in your hallway.</span>
+          </span>
+        </article>
+      </section>
+
+      <section class="probe-wrap shell" id="journal">
+        <div class="probe" id="probe" role="status" aria-live="polite">
+          <span class="probe-led" aria-hidden="true"></span>
+          <span class="probe-copy">
+            <b>Cross-origin embed probe</b>
+            <span id="probe-id">widget id: resolving...</span>
+            <span id="probe-state">state: loading widget.js</span>
+          </span>
+        </div>
+      </section>
+    </main>
 
     <script>
       // The seeded widget id changes every `pnpm db:seed`. Allow ?w=<id> so a
       // stale cached page can be corrected without editing this file.
       (function () {
-        var seeded = "cms06qmo90003so5akiizgim8";
+        var seeded = "cms072iz00003gqsr15e4iwwm";
         var override = new URLSearchParams(location.search).get("w");
         var widgetId = override || seeded;
 
