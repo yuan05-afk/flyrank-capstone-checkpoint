@@ -6,7 +6,7 @@ Marketing teams want a popover, signup form, or CTA live on a customer site toda
 
 Checkpoint is the whole platform for that job. A customer pastes a single `<script>` tag on their own domain, the widget renders from a cached config, and every submission crosses a hardened boundary (CORS allowlist, Zod validation, size limit, token-bucket rate limit, honeytrap spam check, geo enrichment with provider fallback, and side effects that can never sink the primary write) before it lands in a tenant-isolated dashboard.
 
-**Run locally:** [Quick start](#quick-start) | [See the boundary](#the-hardened-boundary) | [Prove it yourself](#prove-it-yourself) | [Architecture](docs/ARCHITECTURE.md)
+**Deployed domain:** [https://checkpoint-flyrank.vercel.app/](https://checkpoint-flyrank.vercel.app/) | [Quick start](#quick-start) | [See the boundary](#the-hardened-boundary) | [Prove it yourself](#prove-it-yourself)
 
 ![Checkpoint landing page showing the embeddable lead capture pitch](docs/images/checkpoint-landing.png)
 
