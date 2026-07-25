@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Customer Site (foreign origin)</title>
+    <style>
+      body {
+        font-family: Georgia, serif;
+        max-width: 40rem;
+        margin: 3rem auto;
+        padding: 0 1rem;
+        color: #222;
+        background: #f7f4ef;
+      }
+      code {
+        background: #eee;
+        padding: 0.1rem 0.3rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Acme Outfitters</h1>
+    <p>
+      This page is intentionally <strong>not</strong> served from the widget
+      platform. Serve it on port <code>5555</code> (or open via
+      <code>file://</code>) so the embed hits
+      <code>localhost:3000</code> cross-origin - the real CORS proof.
+    </p>
+    <p>Scroll down; the checkpoint widget mounts bottom-right.</p>
+
+    <!-- ONE-LINE EMBED - replace WIDGET_ID after seed if needed -->
+    <script
+      src="http://localhost:3000/widget.js"
+      data-widget-id="cms06aj0y0003kep7twty2vd8"
+      async
+    ></script>
+  </body>
+</html>
