@@ -19,7 +19,7 @@ Checkpoint is the whole platform for that job. A customer pastes a single `<scri
 - **Third-party outages degrade, they do not fail:** geo enrichment tries provider A, falls back to provider B, and stores `{ enriched: false }` when both are down. The lead is still captured.
 - **Side effects cannot break the write:** email and webhook notifications are wrapped so a bad API key produces a log line, not a lost submission. The response stays `201`.
 - **Config is cached, not recomputed:** widget config is served CORS-open with `ETag` and `Cache-Control`, so a popular customer site does not hammer the database.
-- **Swap SQLite for Postgres in one line:** the Prisma datasource is the only thing that changes.
+- **Postgres-ready:** Prisma uses PostgreSQL (Neon on Vercel; local Neon free tier or Docker Postgres). See [VERCEL.md](VERCEL.md) for deploy steps.
 
 ## The embed, on someone else's site
 
@@ -97,16 +97,19 @@ Tenant B exists specifically so isolation can be tested from the outside, not ju
 
 ### Clone, install, seed, and run
 
-Clone the repository first, then install and start the app:
+Clone the repository first, then install and start the app. Copy `.env.example` to `.env` and set `DATABASE_URL` to a PostgreSQL connection string (Neon free tier or Docker Postgres with `sslmode=require` where needed):
 
 ```bash
 git clone https://github.com/yuan05-afk/flyrank-capstone-checkpoint.git
 cd flyrank-capstone-checkpoint
+cp .env.example .env   # Windows: copy .env.example .env
 pnpm install
 pnpm db:push
 pnpm db:seed
 pnpm dev
 ```
+
+For Vercel hosting, use PostgreSQL (Neon) and follow [VERCEL.md](VERCEL.md).
 
 Open `http://localhost:3000` and sign in with `tenant_a_key_demo_001`.
 
@@ -247,15 +250,15 @@ The fixture storefront deliberately does **not** use this system. It runs its ow
 
 ## Limitations
 
-- SQLite and the in-memory rate limiter are single-instance. Postgres plus Redis are the production swaps, and both are isolated behind one interface each.
+- The in-memory rate limiter is per server instance (fine for the Capstone demo on Vercel; Redis is the production swap behind the same interface).
 - Geo providers are deterministic mocks shaped like real HTTP clients, so the fallback chain is testable offline.
 - Email uses Resend in dev mode or a logging stub. No mail is sent without a real key.
-- This build runs locally. There is no hosted deployment in this repository.
+- Hosted deploy is manual: see [VERCEL.md](VERCEL.md) for Neon Postgres and env setup.
 
 ## Technology
 
 - Next.js 14 App Router and TypeScript
-- Prisma with SQLite
+- Prisma with PostgreSQL (Neon for Vercel)
 - Zod
 - Tailwind CSS
 - Framer Motion and Lenis
