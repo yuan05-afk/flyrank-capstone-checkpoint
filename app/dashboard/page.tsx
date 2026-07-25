@@ -20,10 +20,9 @@ export default async function DashboardPage() {
   const tenant = await tenantsRepository.findByApiKey(apiKey);
   if (!tenant) redirect("/login");
 
-  const [widgets, submissions, stats] = await Promise.all([
+  const [widgets, desk] = await Promise.all([
     widgetsService.list(tenant.id),
-    submissionsService.listForTenant(tenant.id),
-    submissionsService.stats(tenant.id),
+    submissionsService.deskSnapshot(tenant.id),
   ]);
 
   return (
@@ -44,8 +43,8 @@ export default async function DashboardPage() {
       </header>
       <DashboardClient
         widgets={widgets}
-        submissions={submissions}
-        stats={stats}
+        submissions={desk.submissions}
+        stats={desk.stats}
       />
     </main>
   );

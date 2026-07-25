@@ -26,6 +26,7 @@ export const submissionsRepository = {
         ...(widgetId ? { widgetId } : {}),
       },
       orderBy: { createdAt: "desc" },
+      take: 100,
       include: { widget: { select: { id: true, name: true, type: true } } },
     });
   },

@@ -151,6 +151,64 @@ export const submissionsService = {
     }));
   },
 
+  /** One DB read for the dashboard: recent rows + derived stats. */
+  async deskSnapshot(tenantId: string, limit = 50) {
+    const rows = await submissionsRepository.listForTenantWidget(tenantId);
+    const mapped = rows.slice(0, limit).map((r) => ({
+      id: r.id,
+      widgetId: r.widgetId,
+      widget: "widget" in r ? (r as { widget: unknown }).widget : undefined,
+      payload: JSON.parse(r.payload),
+      enrichment: JSON.parse(r.enrichment),
+      spamScore: r.spamScore,
+      verdict: r.verdict,
+      origin: r.origin,
+      ip: r.ip,
+      createdAt: r.createdAt.toISOString(),
+    }));
+
+    const total = rows.length;
+    const flagged = rows.filter(
+      (r) => r.verdict === "FLAGGED" || r.spamScore >= 2
+    ).length;
+    const accepted = rows.filter((r) => r.verdict === "ACCEPTED").length;
+
+    const byDay = new Map<string, number>();
+    const locations = new Map<string, number>();
+
+    for (const r of rows) {
+      const day = r.createdAt.toISOString().slice(0, 10);
+      byDay.set(day, (byDay.get(day) ?? 0) + 1);
+      try {
+        const enr = JSON.parse(r.enrichment) as {
+          enriched?: boolean;
+          city?: string;
+          country?: string;
+        };
+        if (enr.enriched) {
+          const label = [enr.city, enr.country].filter(Boolean).join(", ");
+          if (label) locations.set(label, (locations.get(label) ?? 0) + 1);
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+
+    const topLocations = Array.from(locations.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([label, count]) => ({ label, count }));
+
+    const countsOverTime = Array.from(byDay.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([date, count]) => ({ date, count }));
+
+    return {
+      submissions: mapped,
+      stats: { total, accepted, flagged, countsOverTime, topLocations },
+    };
+  },
+
   async stats(tenantId: string) {
     const rows = await submissionsRepository.statsForTenant(tenantId);
     const total = rows.length;
