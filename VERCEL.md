@@ -35,7 +35,7 @@ Leave `NEXT_PUBLIC_APP_URL` as a placeholder for the first deploy, or skip it un
 
 ## 5. Set the public app URL
 
-1. Copy your production URL, e.g. `https://flyrank-capstone-checkpoint.vercel.app`.
+1. Copy your production URL, e.g. `https://checkpoint-flyrank.vercel.app`.
 2. In Vercel env vars, set `NEXT_PUBLIC_APP_URL` to that URL (no trailing slash).
 3. Redeploy so embed snippets and links use the correct host.
 
