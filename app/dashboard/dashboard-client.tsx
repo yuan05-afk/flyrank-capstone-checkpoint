@@ -528,7 +528,7 @@ export function DashboardClient({
                     Embed ready
                   </span>
                 </div>
-                <pre className="text-[12px] leading-relaxed bg-canvas border border-line rounded-xl p-3.5 overflow-x-auto whitespace-pre-wrap font-mono text-muted">
+                <pre className="text-[12px] leading-relaxed bg-canvas border border-line rounded-xl p-3.5 overflow-x-auto signal-scroll whitespace-pre-wrap font-mono text-muted">
                   {w.embedSnippet}
                 </pre>
                 <motion.button
@@ -732,7 +732,7 @@ export function DashboardClient({
               <Inbox className="w-4 h-4 text-signal" />
               <h2 className="font-display text-lg font-semibold">Submissions</h2>
             </div>
-            <div className="surface overflow-x-auto !p-0">
+            <div className="surface overflow-x-auto signal-scroll !p-0">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-left text-[10px] font-mono tracking-[0.12em] uppercase text-muted border-b border-line bg-canvas/50">

@@ -56,6 +56,7 @@ Landing and dashboard should both feel alive - same stack as CheckMyDevice:
 3. Continuous: signal-status pulse, hero orbs, scrolling intake trace (marketing), geo ping rings (dashboard).
 4. Interaction (required on landing): every feature, step, and trust/guarantee card responds to hover **and** focus (teal wash, border tint, icon/title color shift, slight lift) like CheckMyDevice privacy items. Buttons and nav links included. Do not ship static decorative grids.
 5. Always honor `prefers-reduced-motion`.
+6. **Custom scrollbars:** page (`html`) and nested/horizontal regions (`.signal-scroll`) use thin Signal thumbs (line resting, teal hover). Include Firefox `scrollbar-color`. Never leave default OS chrome; never hide page scrollbars.
 
 Do **not** leave sections stuck at partial opacity from scroll-linked transforms - prefer discrete enter animations that settle at full opacity.
 

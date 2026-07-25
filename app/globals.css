@@ -15,6 +15,77 @@
   --warn: #b45309;
   --danger: #dc2626;
   --shadow: 0 10px 30px -18px rgba(12, 18, 34, 0.28);
+  --scroll-size: 10px;
+  --scroll-size-nested: 8px;
+  --scroll-track: transparent;
+  --scroll-thumb: #c5d0de;
+  --scroll-thumb-hover: #0f766e;
+}
+
+/* Signal custom scrollbars: page vertical + horizontal */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll-thumb) var(--scroll-track);
+}
+
+html::-webkit-scrollbar {
+  width: var(--scroll-size);
+  height: var(--scroll-size);
+}
+
+html::-webkit-scrollbar-track {
+  background: var(--scroll-track);
+}
+
+html::-webkit-scrollbar-thumb {
+  background: var(--scroll-thumb);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+html::-webkit-scrollbar-thumb:hover,
+html::-webkit-scrollbar-thumb:active {
+  background: var(--scroll-thumb-hover);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+html::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Nested panels, tables, code, drawers */
+.signal-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll-thumb) var(--scroll-track);
+}
+
+.signal-scroll::-webkit-scrollbar {
+  width: var(--scroll-size-nested);
+  height: var(--scroll-size-nested);
+}
+
+.signal-scroll::-webkit-scrollbar-track {
+  background: var(--scroll-track);
+}
+
+.signal-scroll::-webkit-scrollbar-thumb {
+  background: var(--scroll-thumb);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.signal-scroll::-webkit-scrollbar-thumb:hover,
+.signal-scroll::-webkit-scrollbar-thumb:active {
+  background: var(--scroll-thumb-hover);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.signal-scroll::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 html,

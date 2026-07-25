@@ -14,6 +14,7 @@ Follow the Capstones skill `capstone-signal-design` (CheckMyDevice template) for
 - Brand mark / favicon follows the CheckMyDevice instrument grammar: dark plate, inset rim, one product-specific signal, one live-status light. Checkpoint uses a lead signal crossing scanner posts. Keep BrandMark.tsx and public/favicon.svg identical; verify at 16px.
 - Never use em dashes (`—`) or en dashes (`–`) in UI copy or metadata - use hyphens, commas, or periods.
 - Landing requires: Lenis smooth scroll, Framer Motion chapters (`once: true`), **balanced left+right hero art** with center text safe zone (visible side opacity ~0.75-0.95, dual radial masks / side panels), signal trace, section badges, dual CTAs.
+- Custom Signal scrollbars on page (`html`) and nested/horizontal regions (`.signal-scroll`): thin thumb, transparent track, teal hover, Firefox `scrollbar-color` included. Never leave default OS chrome or hide page scrollbars.
 - Landing interactivity is required: feature, step, and trust/guarantee cards must respond to hover and focus (teal wash, border tint, icon/title color shift, slight lift) like CheckMyDevice privacy items. Do not ship static decorative grids.
 - Dashboard must match landing atmosphere (mesh/orbs, badges, staggered motion, hover lifts).
 - Never leave sections stuck at partial opacity; never nest SVG `<title>` (hydration bugs).
