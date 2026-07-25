@@ -1,0 +1,13 @@
+---
+description: Enforce repository → service → route-handler layering
+globs: app/api/**/*.ts,services/**/*.ts,repositories/**/*.ts
+alwaysApply: true
+---
+
+# Architecture
+
+- Route handlers only parse the request, call a service, and map the result to HTTP. Do not import Prisma in `app/api/**`.
+- Services hold business logic, validation orchestration, enrichment, and side-effect wrapping.
+- Repositories are the only place that touch the database. No query touches the DB without going through a repository.
+- Prefer a straightforward route + small service over queues, brokers, or extra microservices.
+- Keep the `repository → service → route handler` direction one-way — services may call repositories; repositories must not call services or routes.

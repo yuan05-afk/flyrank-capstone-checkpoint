@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+/// Tenant owns widgets and submissions. Auth is a seeded API key (simpler than magic-link).
+model Tenant {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  /// Opaque session credential; never accept tenantId from the client for scoping.
+  apiKey    String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  widgets   Widget[]
+}
+
+model Widget {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  /// popover | signup | cta
+  type      String
+  name      String
+  /// Headline, body, button label, etc.
+  copy      String   @default("{}")
+  /// Form field definitions as JSON array
+  fields    String   @default("[]")
+  /// Targeting rules (paths, devices) as JSON
+  targeting String   @default("{}")
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  submissions Submission[]
+
+  @@index([tenantId])
+}
+
+model Submission {
+  id          String   @id @default(cuid())
+  widgetId    String
+  widget      Widget   @relation(fields: [widgetId], references: [id], onDelete: Cascade)
+  /// Raw validated payload from the embed
+  payload     String
+  /// Geo / enrichment blob; may be {"enriched":false}
+  enrichment  String   @default("{\"enriched\":false}")
+  spamScore   Float    @default(0)
+  /// ACCEPTED | REJECTED | RATE_LIMITED | FLAGGED
+  verdict     String   @default("ACCEPTED")
+  origin      String?
+  ip          String?
+  createdAt   DateTime @default(now())
+
+  @@index([widgetId])
+  @@index([createdAt])
+}

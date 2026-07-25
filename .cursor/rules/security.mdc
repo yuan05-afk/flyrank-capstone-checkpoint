@@ -1,0 +1,15 @@
+---
+description: Public-endpoint hardening rules for this platform
+globs: app/api/**/*.ts,lib/**/*.ts,services/**/*.ts
+alwaysApply: true
+---
+
+# Security
+
+- Every public route must validate with Zod before touching business logic.
+- Public write endpoints (submissions) must set explicit CORS headers and echo/allowlist the Origin — never use wildcard `*` on submissions.
+- Handle OPTIONS preflight explicitly on CORS-sensitive routes.
+- Config delivery may be CORS-open; submissions must not be.
+- Side effects that are not the primary write (email, webhooks) must be wrapped so they cannot throw past the handler.
+- Admin queries for widgets/submissions must be scoped to the authenticated tenant from the session — never trust a client-supplied tenant id.
+- Return honest 4xx status codes for bad shape (400), oversized (413/422), and rate limits (429). Do not paper over failures as 500.
