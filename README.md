@@ -93,10 +93,15 @@ Tenant B exists specifically so isolation can be tested from the outside, not ju
 
 - Node.js 18.18 or newer
 - pnpm 9 or newer
+- Git
 
-### Install, seed, and run
+### Clone, install, seed, and run
+
+Clone the repository first, then install and start the app:
 
 ```bash
+git clone https://github.com/yuan05-afk/flyrank-capstone-checkpoint.git
+cd flyrank-capstone-checkpoint
 pnpm install
 pnpm db:push
 pnpm db:seed
@@ -105,11 +110,22 @@ pnpm dev
 
 Open `http://localhost:3000` and sign in with `tenant_a_key_demo_001`.
 
+The development server defaults to port `3000`. Override it only when needed:
+
+```bash
+# POSIX
+PORT=3001 pnpm dev
+
+# PowerShell
+$env:PORT = '3001'
+pnpm dev
+```
+
 The seed prints the demo widget id and the exact embed snippet, and rewrites the widget id inside `fixtures/customer-site.html` so the cross-origin demo works immediately.
 
 ### Serve the foreign origin
 
-In a second terminal:
+In a second terminal (from the same repo root):
 
 ```bash
 pnpm dev:fixture
