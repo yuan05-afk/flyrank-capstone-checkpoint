@@ -69,8 +69,8 @@ async function main() {
   if (fs.existsSync(fixturePath)) {
     let html = fs.readFileSync(fixturePath, "utf8");
     html = html.replace(
-      /data-widget-id="[^"]*"/,
-      `data-widget-id="${widgetA.id}"`
+      /var seeded = "[^"]*"/,
+      `var seeded = "${widgetA.id}"`
     );
     fs.writeFileSync(fixturePath, html);
   }

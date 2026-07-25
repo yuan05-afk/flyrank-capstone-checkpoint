@@ -2,6 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <meta http-equiv="cache-control" content="no-store" />
     <title>Customer Site (foreign origin)</title>
     <style>
       body {
@@ -16,6 +17,30 @@
         background: #eee;
         padding: 0.1rem 0.3rem;
       }
+      .probe {
+        margin-top: 2rem;
+        border: 1px solid #ddd7cc;
+        border-left: 4px solid #999;
+        background: #fffdf8;
+        padding: 0.9rem 1rem;
+        font-family: ui-monospace, Consolas, monospace;
+        font-size: 0.8rem;
+        line-height: 1.6;
+        color: #444;
+      }
+      .probe b {
+        display: block;
+        font-family: Georgia, serif;
+        font-size: 0.95rem;
+        color: #222;
+        margin-bottom: 0.4rem;
+      }
+      .probe.ok {
+        border-left-color: #15803d;
+      }
+      .probe.bad {
+        border-left-color: #dc2626;
+      }
     </style>
   </head>
   <body>
@@ -26,13 +51,52 @@
       <code>file://</code>) so the embed hits
       <code>localhost:3000</code> cross-origin - the real CORS proof.
     </p>
-    <p>Scroll down; the checkpoint widget mounts bottom-right.</p>
+    <p>The Checkpoint widget mounts bottom-right.</p>
 
-    <!-- ONE-LINE EMBED - replace WIDGET_ID after seed if needed -->
-    <script
-      src="http://localhost:3000/widget.js"
-      data-widget-id="cms06qmo90003so5akiizgim8"
-      async
-    ></script>
+    <div class="probe" id="probe">
+      <b>Embed probe</b>
+      <span id="probe-id">widget id: resolving...</span><br />
+      <span id="probe-state">state: loading widget.js</span>
+    </div>
+
+    <script>
+      // The seeded widget id changes every `pnpm db:seed`. Allow ?w=<id> so a
+      // stale cached page can be corrected without editing this file.
+      (function () {
+        var seeded = "cms06qmo90003so5akiizgim8";
+        var override = new URLSearchParams(location.search).get("w");
+        var widgetId = override || seeded;
+
+        document.getElementById("probe-id").textContent =
+          "widget id: " + widgetId + (override ? " (from ?w=)" : "");
+
+        var probe = document.getElementById("probe");
+        var state = document.getElementById("probe-state");
+
+        window.addEventListener("checkpoint:ready", function (e) {
+          probe.className = "probe ok";
+          state.textContent =
+            "state: mounted cross-origin, type=" + e.detail.type;
+        });
+
+        window.addEventListener("checkpoint:error", function (e) {
+          probe.className = "probe bad";
+          state.textContent =
+            "state: " + e.detail.reason + " - " + (e.detail.detail || "");
+        });
+
+        var s = document.createElement("script");
+        s.src = "http://localhost:3000/widget.js";
+        s.async = true;
+        s.setAttribute("data-widget-id", widgetId);
+        s.setAttribute("data-debug", "true");
+        s.onerror = function () {
+          probe.className = "probe bad";
+          state.textContent =
+            "state: widget.js failed to load, is the platform running on :3000?";
+        };
+        document.body.appendChild(s);
+      })();
+    </script>
   </body>
 </html>

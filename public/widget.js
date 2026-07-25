@@ -7,8 +7,24 @@
   if (!script) return;
 
   var widgetId = script.getAttribute("data-widget-id");
+  var debug = script.getAttribute("data-debug") === "true";
+
+  function emit(name, detail) {
+    try {
+      window.dispatchEvent(new CustomEvent("checkpoint:" + name, { detail: detail }));
+    } catch (e) {
+      /* older browsers: events are a convenience, never a requirement */
+    }
+  }
+
+  function fail(reason, detail) {
+    console.error("[checkpoint] " + reason, detail || "");
+    emit("error", { widgetId: widgetId, reason: reason, detail: detail });
+    if (debug) showDebugCard(reason, detail);
+  }
+
   if (!widgetId) {
-    console.error("[wp] missing data-widget-id");
+    fail("missing data-widget-id on the embed script");
     return;
   }
 
@@ -33,7 +49,38 @@
     ".wp-status.ok{color:#15803D;}",
     ".wp-status.bad{color:#DC2626;}",
     ".wp-cta-only .wp-form{display:flex;gap:8px;align-items:flex-end;}",
+    ".wp-debug{position:fixed;inset:auto 16px 16px auto;z-index:2147483000;max-width:320px;background:#FFFFFF;border:1px solid #FCA5A5;border-left:4px solid #DC2626;border-radius:12px;padding:12px 14px;font-family:Figtree,Segoe UI,sans-serif;color:#0C1222;box-shadow:0 16px 40px -24px rgba(12,18,34,.35);}",
+    ".wp-debug b{display:block;font-size:12px;color:#DC2626;margin-bottom:4px;}",
+    ".wp-debug span{display:block;font-size:12px;line-height:1.5;color:#5B6578;}",
+    ".wp-debug code{font-family:ui-monospace,Consolas,monospace;font-size:11px;color:#0C1222;word-break:break-all;}",
   ].join("");
+
+  function injectStyle(target) {
+    var style = document.createElement("style");
+    style.textContent = STYLE;
+    target.appendChild(style);
+  }
+
+  /** Visible failure surface, opt-in via data-debug so customer sites stay clean. */
+  function showDebugCard(reason, detail) {
+    function render() {
+      var box = document.createElement("div");
+      box.className = "wp-debug";
+      injectStyle(box);
+      var title = document.createElement("b");
+      title.textContent = "Checkpoint widget did not mount";
+      var body = document.createElement("span");
+      body.textContent = reason + (detail ? " (" + detail + ")" : "");
+      var id = document.createElement("code");
+      id.textContent = "data-widget-id=" + (widgetId || "missing");
+      box.appendChild(title);
+      box.appendChild(body);
+      box.appendChild(id);
+      document.body.appendChild(box);
+    }
+    if (document.body) render();
+    else document.addEventListener("DOMContentLoaded", render);
+  }
 
   function esc(s) {
     return String(s)
@@ -48,9 +95,7 @@
     root.className = "wp-root";
     root.setAttribute("data-widget-id", config.id);
 
-    var style = document.createElement("style");
-    style.textContent = STYLE;
-    root.appendChild(style);
+    injectStyle(root);
 
     var fields = (config.fields || [])
       .map(function (f) {
@@ -155,11 +200,20 @@
     headers: { Accept: "application/json" },
   })
     .then(function (res) {
-      if (!res.ok) throw new Error("config " + res.status);
+      if (!res.ok) {
+        var hint =
+          res.status === 404
+            ? "unknown or stale widget id, re-run pnpm db:seed and refresh"
+            : "config request rejected";
+        throw new Error(hint + " [HTTP " + res.status + "]");
+      }
       return res.json();
     })
-    .then(mount)
+    .then(function (config) {
+      mount(config);
+      emit("ready", { widgetId: config.id, type: config.type });
+    })
     .catch(function (err) {
-      console.error("[wp] failed to load config", err);
+      fail("could not load widget config", err.message);
     });
 })();
