@@ -133,7 +133,7 @@ function WorldOutline({
   return (
     <svg
       viewBox="0 0 360 180"
-      className="w-full"
+      className="w-full max-h-40"
       role="img"
       aria-label="World map of submission origins"
     >
@@ -252,6 +252,53 @@ export function DashboardClient({
     }
     return Array.from(byPlace.values()).slice(0, 25);
   }, [submissions]);
+
+  const geoPulse = useMemo(() => {
+    const total = submissions.length;
+    let enriched = 0;
+    const providers = new Map<string, number>();
+    let lastLabel = "-";
+    let lastAt = "";
+
+    for (const s of submissions) {
+      if (s.enrichment?.enriched) {
+        enriched += 1;
+        const provider = s.enrichment.provider || "unknown";
+        providers.set(provider, (providers.get(provider) || 0) + 1);
+        if (!lastAt) {
+          lastLabel =
+            [s.enrichment.city, s.enrichment.country]
+              .filter(Boolean)
+              .join(", ") || "-";
+          lastAt = s.createdAt;
+        }
+      }
+    }
+
+    const topProvider = Array.from(providers.entries()).sort(
+      (a, b) => b[1] - a[1]
+    )[0];
+    const locationTotal = stats.topLocations.reduce((sum, l) => sum + l.count, 0);
+
+    return {
+      enriched,
+      total,
+      coverage: total ? Math.round((enriched / total) * 100) : 0,
+      places: stats.topLocations.length,
+      unenriched: Math.max(0, total - enriched),
+      providerLabel: topProvider
+        ? topProvider[0].startsWith("provider-")
+          ? `Provider ${topProvider[0].slice("provider-".length).toUpperCase()}`
+          : topProvider[0]
+        : "Idle",
+      providerShare: topProvider && enriched
+        ? Math.round((topProvider[1] / enriched) * 100)
+        : 0,
+      lastLabel,
+      lastAt,
+      locationTotal: locationTotal || enriched,
+    };
+  }, [submissions, stats.topLocations]);
 
   async function copySnippet(id: string, snippet: string) {
     await navigator.clipboard.writeText(snippet);
@@ -514,15 +561,15 @@ export function DashboardClient({
         </motion.section>
 
         {/* Locations + submissions */}
-        <div className="grid lg:grid-cols-5 gap-4">
+        <div className="grid lg:grid-cols-5 gap-4 lg:items-start">
           <motion.section
-            className="surface p-5 lg:col-span-2 overflow-hidden"
+            className="surface p-5 lg:col-span-2 overflow-hidden flex flex-col"
             initial={shouldReduce ? false : { opacity: 0, y: 28 }}
             whileInView={shouldReduce ? undefined : { opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.55, ease: EASE }}
           >
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-signal" />
                 <h2 className="font-display text-lg font-semibold">Locations</h2>
@@ -532,26 +579,146 @@ export function DashboardClient({
               </span>
             </div>
             <WorldOutline points={geoPoints} />
-            <ul className="mt-4 space-y-2">
-              {stats.topLocations.map((l, i) => (
-                <motion.li
-                  key={l.label}
-                  initial={shouldReduce ? false : { opacity: 0, x: -8 }}
-                  whileInView={shouldReduce ? undefined : { opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.06, duration: 0.4, ease: EASE }}
-                  className="flex items-center justify-between text-sm border border-line rounded-xl px-3 py-2 bg-canvas/70"
-                >
-                  <span className="text-muted">{l.label}</span>
-                  <span className="font-display font-semibold text-signal">
-                    {l.count}
+
+            <div className="mt-3 flex flex-col gap-3">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="font-mono text-[9px] tracking-[0.14em] text-muted uppercase">
+                    Origin share
+                  </p>
+                  <p className="font-mono text-[9px] tracking-[0.12em] text-muted uppercase">
+                    {geoPulse.places} place{geoPulse.places === 1 ? "" : "s"}
+                  </p>
+                </div>
+                <ul className="space-y-2">
+                  {stats.topLocations.map((l, i) => {
+                    const share = geoPulse.locationTotal
+                      ? Math.round((l.count / geoPulse.locationTotal) * 100)
+                      : 0;
+                    return (
+                      <motion.li
+                        key={l.label}
+                        initial={shouldReduce ? false : { opacity: 0, x: -8 }}
+                        whileInView={
+                          shouldReduce ? undefined : { opacity: 1, x: 0 }
+                        }
+                        viewport={{ once: true }}
+                        transition={{
+                          delay: i * 0.06,
+                          duration: 0.4,
+                          ease: EASE,
+                        }}
+                        className="border border-line rounded-xl px-3 py-2.5 bg-canvas/70"
+                      >
+                        <div className="flex items-center justify-between text-sm mb-1.5">
+                          <span className="text-muted truncate pr-2">
+                            {l.label}
+                          </span>
+                          <span className="font-display font-semibold text-signal tabular-nums">
+                            {l.count}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="h-1.5 flex-1 rounded-full bg-line/80 overflow-hidden">
+                            <motion.div
+                              className="h-full rounded-full bg-signal"
+                              initial={
+                                shouldReduce ? false : { width: 0 }
+                              }
+                              whileInView={
+                                shouldReduce
+                                  ? undefined
+                                  : { width: `${Math.max(share, 6)}%` }
+                              }
+                              viewport={{ once: true }}
+                              transition={{
+                                delay: 0.15 + i * 0.05,
+                                duration: 0.55,
+                                ease: EASE,
+                              }}
+                              style={
+                                shouldReduce
+                                  ? { width: `${Math.max(share, 6)}%` }
+                                  : undefined
+                              }
+                            />
+                          </div>
+                          <span className="font-mono text-[10px] text-muted w-8 text-right tabular-nums">
+                            {share}%
+                          </span>
+                        </div>
+                      </motion.li>
+                    );
+                  })}
+                  {stats.topLocations.length === 0 && (
+                    <li className="text-sm text-muted border border-dashed border-line rounded-xl px-3 py-4 text-center">
+                      No enriched locations yet. Submissions still land when
+                      providers degrade.
+                    </li>
+                  )}
+                </ul>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  {
+                    label: "Coverage",
+                    value: `${geoPulse.coverage}%`,
+                    hint: `${geoPulse.enriched}/${geoPulse.total || 0}`,
+                  },
+                  {
+                    label: "Places",
+                    value: String(geoPulse.places),
+                    hint: geoPulse.unenriched
+                      ? `${geoPulse.unenriched} pending`
+                      : "all stamped",
+                  },
+                  {
+                    label: "Provider",
+                    value: geoPulse.providerLabel,
+                    hint: geoPulse.providerShare
+                      ? `${geoPulse.providerShare}% of hits`
+                      : "awaiting",
+                  },
+                ].map((cell) => (
+                  <div
+                    key={cell.label}
+                    className="rounded-xl border border-line bg-canvas/80 px-2.5 py-2.5"
+                  >
+                    <p className="font-mono text-[8px] tracking-[0.14em] text-muted uppercase mb-1">
+                      {cell.label}
+                    </p>
+                    <p className="font-display text-sm font-semibold text-ink leading-tight truncate">
+                      {cell.value}
+                    </p>
+                    <p className="font-mono text-[9px] text-muted mt-0.5 truncate">
+                      {cell.hint}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="rounded-xl border border-line/80 bg-signal-fog/40 px-3 py-2.5">
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <p className="font-mono text-[9px] tracking-[0.14em] text-signal uppercase">
+                    Enrichment chain
+                  </p>
+                  <span className="signal-status-dot" aria-hidden="true" />
+                </div>
+                <p className="font-mono text-[10px] text-muted tracking-wide">
+                  A {"->"} B {"->"} degrade
+                </p>
+                <p className="text-[11px] text-muted mt-1 leading-snug">
+                  Last ping:{" "}
+                  <span className="text-ink font-medium">
+                    {geoPulse.lastLabel}
                   </span>
-                </motion.li>
-              ))}
-              {stats.topLocations.length === 0 && (
-                <li className="text-sm text-muted">No enriched locations yet.</li>
-              )}
-            </ul>
+                  {geoPulse.lastAt
+                    ? ` · ${geoPulse.lastAt.replace("T", " ").slice(11, 19)}`
+                    : ""}
+                </p>
+              </div>
+            </div>
           </motion.section>
 
           <motion.section
