@@ -188,6 +188,12 @@
             (config.copy && config.copy.successMessage) ||
             "ACCEPTED - filed as " + (data.verdict || "OK");
           form.reset();
+          emit("submitted", {
+            widgetId: config.id,
+            submissionId: data.id,
+            verdict: data.verdict || "ACCEPTED",
+            spamScore: data.spamScore || 0,
+          });
         })
         .catch(function (err) {
           status.className = "wp-status bad";

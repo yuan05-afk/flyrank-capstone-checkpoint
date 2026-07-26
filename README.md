@@ -38,6 +38,7 @@ A widget that fails silently is the worst kind to debug, so the script is explic
 | Signal | Purpose |
 | --- | --- |
 | `checkpoint:ready` event | Fired on `window` after a successful mount, with the widget id and type. |
+| `checkpoint:submitted` event | Fired after a `201` write, with the submission id, verdict, spam score, and widget id. The owner dashboard uses it to refresh the ledger after a live test. |
 | `checkpoint:error` event | Fired with a readable reason, for example a stale widget id returning `404`. |
 | `data-debug="true"` | Opt-in. Renders a visible failure card instead of only logging. Customer sites that omit it still fail quietly. |
 
@@ -76,6 +77,27 @@ Sign in with a tenant API key and the dashboard shows only that tenant's widgets
 
 ![Checkpoint submission ledger showing accepted and flagged rows with geo locations](docs/images/checkpoint-ledger.png)
 
+### Test before you install
+
+Each widget card now has **Test live** beside **Copy snippet**. Test live mounts
+the exact public `widget.js` embed in the lower-right corner of the dashboard.
+Fill and submit it to exercise the same config fetch, validation, rate limit,
+spam score, geo fallback, safe notification, and tenant-scoped database write
+used by a customer site. After the `checkpoint:submitted` event, dashboard
+stats refresh and **View new row** moves directly to the updated submission
+ledger.
+
+This makes the hosted product flow complete:
+
+```text
+create widget -> test live -> submit -> inspect verdict + location
+              -> copy snippet -> install on an allowlisted customer site
+```
+
+Checkpoint intentionally stops at a captured and audited lead. A production
+follow-up could forward accepted rows to a CRM, email platform, or signed
+webhook consumer, while flagged rows remain visible for owner review.
+
 ## Auth choice
 
 **Seeded API key per tenant**, chosen over magic-link because it keeps the demo runnable with zero mail setup while still exercising real session handling. Admin routes accept `Authorization: Bearer <apiKey>` or the HTTP-only `wp_session` cookie set by `/login`.
@@ -97,7 +119,10 @@ Tenant B exists specifically so isolation can be tested from the outside, not ju
 
 ### Clone, install, seed, and run
 
-Clone the repository first, then install and start the app. Copy `.env.example` to `.env` and set `DATABASE_URL` to a PostgreSQL connection string (Neon free tier or Docker Postgres with `sslmode=require` where needed):
+Clone the repository first, then install and start the app. Copy `.env.example`
+to `.env` and set `DATABASE_URL` to the `checkpoint` database on a separate
+Neon development branch. Do not use the production branch because integration
+tests reset tenant, widget, and submission tables.
 
 ```bash
 git clone https://github.com/yuan05-afk/flyrank-capstone-checkpoint.git

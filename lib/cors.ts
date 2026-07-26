@@ -14,7 +14,19 @@ const DEFAULT_ALLOWLIST = [
 
 function allowlist(): string[] {
   const extra = process.env.CORS_ALLOWLIST?.split(",").map((s) => s.trim()).filter(Boolean);
-  return [...DEFAULT_ALLOWLIST, ...(extra ?? [])];
+  let appOrigin: string | null = null;
+  try {
+    if (process.env.NEXT_PUBLIC_APP_URL) {
+      appOrigin = new URL(process.env.NEXT_PUBLIC_APP_URL).origin;
+    }
+  } catch {
+    // Invalid app URL should not widen the write boundary.
+  }
+  return [
+    ...DEFAULT_ALLOWLIST,
+    ...(appOrigin ? [appOrigin] : []),
+    ...(extra ?? []),
+  ];
 }
 
 export function isOriginAllowed(origin: string | null): boolean {

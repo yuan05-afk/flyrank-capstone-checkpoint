@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { PrismaClient } from "@prisma/client";
 import { widgetsService } from "@/services/widgets.service";
+import { isOriginAllowed } from "@/lib/cors";
 import { createHash } from "crypto";
 
 const prisma = new PrismaClient();
@@ -50,5 +51,17 @@ describe("Public config delivery", () => {
   it("returns null for unknown widget", async () => {
     const config = await widgetsService.publicConfig("does-not-exist");
     expect(config).toBeNull();
+  });
+});
+
+describe("Dashboard live-test origin", () => {
+  it("allows the configured app origin through the same submission boundary", () => {
+    const previous = process.env.NEXT_PUBLIC_APP_URL;
+    process.env.NEXT_PUBLIC_APP_URL =
+      "https://checkpoint-preview.example/path-is-ignored";
+    expect(isOriginAllowed("https://checkpoint-preview.example")).toBe(true);
+    expect(isOriginAllowed("https://attacker.example")).toBe(false);
+    if (previous === undefined) delete process.env.NEXT_PUBLIC_APP_URL;
+    else process.env.NEXT_PUBLIC_APP_URL = previous;
   });
 });

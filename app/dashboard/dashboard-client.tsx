@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   motion,
   useMotionValue,
@@ -16,6 +17,8 @@ import {
   MapPin,
   Plus,
   Code2,
+  Play,
+  X,
 } from "lucide-react";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -216,9 +219,66 @@ export function DashboardClient({
   submissions: Submission[];
   stats: Stats;
 }) {
+  const router = useRouter();
   const shouldReduce = useReducedMotion();
   const [copied, setCopied] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const [previewWidget, setPreviewWidget] = useState<Widget | null>(null);
+  const [previewStatus, setPreviewStatus] = useState<
+    "loading" | "ready" | "submitted" | "error" | null
+  >(null);
+
+  useEffect(() => {
+    if (!previewWidget) return;
+
+    const removePreview = () => {
+      document
+        .querySelectorAll(
+          '[data-checkpoint-preview-script="true"], .wp-root, .wp-debug'
+        )
+        .forEach((node) => node.remove());
+    };
+
+    const matchesPreview = (event: Event) =>
+      (event as CustomEvent<{ widgetId?: string }>).detail?.widgetId ===
+      previewWidget.id;
+
+    const handleReady = (event: Event) => {
+      if (matchesPreview(event)) setPreviewStatus("ready");
+    };
+    const handleError = (event: Event) => {
+      if (matchesPreview(event)) setPreviewStatus("error");
+    };
+    const handleSubmitted = (event: Event) => {
+      if (!matchesPreview(event)) return;
+      setPreviewStatus("submitted");
+      // Refresh the server snapshot so stats, geo, and the ledger all reflect
+      // the exact submission that just crossed the public boundary.
+      router.refresh();
+    };
+
+    window.addEventListener("checkpoint:ready", handleReady);
+    window.addEventListener("checkpoint:error", handleError);
+    window.addEventListener("checkpoint:submitted", handleSubmitted);
+
+    removePreview();
+    setPreviewStatus("loading");
+    const script = document.createElement("script");
+    script.src = new URL("/widget.js", window.location.origin).toString();
+    script.async = true;
+    script.dataset.widgetId = previewWidget.id;
+    script.dataset.debug = "true";
+    script.dataset.checkpointPreviewScript = "true";
+    script.onerror = () => setPreviewStatus("error");
+    document.body.appendChild(script);
+
+    return () => {
+      window.removeEventListener("checkpoint:ready", handleReady);
+      window.removeEventListener("checkpoint:error", handleError);
+      window.removeEventListener("checkpoint:submitted", handleSubmitted);
+      removePreview();
+    };
+  }, [previewWidget, router]);
 
   const geoPoints = useMemo(() => {
     const byPlace = new Map<
@@ -304,6 +364,12 @@ export function DashboardClient({
     await navigator.clipboard.writeText(snippet);
     setCopied(id);
     setTimeout(() => setCopied(null), 1500);
+  }
+
+  function openPreview(widget: Widget) {
+    setPreviewWidget((current) =>
+      current?.id === widget.id ? { ...widget } : widget
+    );
   }
 
   async function createDemoWidget() {
@@ -465,7 +531,7 @@ export function DashboardClient({
         {/* Widgets */}
         <motion.section
           initial={shouldReduce ? false : { opacity: 0, y: 28 }}
-          whileInView={shouldReduce ? undefined : { opacity: 1, y: 0 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.15 }}
           transition={{ duration: 0.55, ease: EASE }}
         >
@@ -476,10 +542,61 @@ export function DashboardClient({
                 <h2 className="font-display text-xl font-semibold">Your widgets</h2>
               </div>
               <p className="text-xs text-muted">
-                Copy a snippet and drop it on any origin.
+                Test the real embed here, then copy the same snippet to any
+                allowlisted customer origin.
               </p>
             </div>
           </div>
+
+          {previewWidget && (
+            <motion.div
+              initial={shouldReduce ? false : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-4 flex flex-col gap-3 rounded-2xl border border-signal/25 bg-signal-fog/70 p-4 sm:flex-row sm:items-center sm:justify-between"
+            >
+              <div>
+                <p className="font-mono text-[9px] uppercase tracking-[0.14em] text-signal">
+                  Live embed test
+                </p>
+                <p className="mt-1 text-sm text-ink">
+                  <b>{previewWidget.name}</b>{" "}
+                  {previewStatus === "loading"
+                    ? "is loading in the lower-right corner."
+                    : previewStatus === "ready"
+                      ? "is ready. Submit it to create a real ledger row."
+                      : previewStatus === "submitted"
+                        ? "was submitted. Stats and the ledger are refreshed."
+                        : "could not mount. Check its active state and CORS configuration."}
+                </p>
+              </div>
+              <div className="flex shrink-0 flex-wrap gap-2">
+                {previewStatus === "submitted" && (
+                  <button
+                    type="button"
+                    className="btn-secondary !min-h-9 !px-3 !py-1.5 text-xs"
+                    onClick={() =>
+                      document
+                        .getElementById("submissions")
+                        ?.scrollIntoView({ behavior: "smooth", block: "start" })
+                    }
+                  >
+                    View new row
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="btn-secondary !min-h-9 !px-3 !py-1.5 text-xs"
+                  onClick={() => {
+                    setPreviewWidget(null);
+                    setPreviewStatus(null);
+                  }}
+                >
+                  <X className="h-3.5 w-3.5" />
+                  Close test
+                </button>
+              </div>
+            </motion.div>
+          )}
 
           <motion.div
             className="space-y-4"
@@ -531,15 +648,26 @@ export function DashboardClient({
                 <pre className="text-[12px] leading-relaxed bg-canvas border border-line rounded-xl p-3.5 overflow-x-auto signal-scroll whitespace-pre-wrap font-mono text-muted">
                   {w.embedSnippet}
                 </pre>
-                <motion.button
-                  whileHover={shouldReduce ? undefined : { y: -1 }}
-                  whileTap={shouldReduce ? undefined : { scale: 0.98 }}
-                  className="btn-primary !text-sm mt-4 gap-2"
-                  onClick={() => copySnippet(w.id, w.embedSnippet)}
-                >
-                  <Copy className="w-3.5 h-3.5" />
-                  {copied === w.id ? "Copied" : "Copy snippet"}
-                </motion.button>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <motion.button
+                    whileHover={shouldReduce ? undefined : { y: -1 }}
+                    whileTap={shouldReduce ? undefined : { scale: 0.98 }}
+                    className="btn-primary !text-sm gap-2"
+                    onClick={() => openPreview(w)}
+                  >
+                    <Play className="h-3.5 w-3.5" />
+                    {previewWidget?.id === w.id ? "Restart test" : "Test live"}
+                  </motion.button>
+                  <motion.button
+                    whileHover={shouldReduce ? undefined : { y: -1 }}
+                    whileTap={shouldReduce ? undefined : { scale: 0.98 }}
+                    className="btn-secondary !text-sm gap-2"
+                    onClick={() => copySnippet(w.id, w.embedSnippet)}
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                    {copied === w.id ? "Copied" : "Copy snippet"}
+                  </motion.button>
+                </div>
               </motion.div>
             ))}
             {widgets.length === 0 && (
@@ -565,7 +693,7 @@ export function DashboardClient({
           <motion.section
             className="surface p-5 lg:col-span-2 overflow-hidden flex flex-col"
             initial={shouldReduce ? false : { opacity: 0, y: 28 }}
-            whileInView={shouldReduce ? undefined : { opacity: 1, y: 0 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.55, ease: EASE }}
           >
@@ -599,9 +727,7 @@ export function DashboardClient({
                       <motion.li
                         key={l.label}
                         initial={shouldReduce ? false : { opacity: 0, x: -8 }}
-                        whileInView={
-                          shouldReduce ? undefined : { opacity: 1, x: 0 }
-                        }
+                        whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
                         transition={{
                           delay: i * 0.06,
@@ -722,9 +848,10 @@ export function DashboardClient({
           </motion.section>
 
           <motion.section
+            id="submissions"
             className="lg:col-span-3"
             initial={shouldReduce ? false : { opacity: 0, y: 28 }}
-            whileInView={shouldReduce ? undefined : { opacity: 1, y: 0 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.15 }}
             transition={{ duration: 0.55, ease: EASE, delay: 0.05 }}
           >
@@ -751,9 +878,7 @@ export function DashboardClient({
                       initial={
                         shouldReduce ? false : { opacity: 0, y: 8 }
                       }
-                      whileInView={
-                        shouldReduce ? undefined : { opacity: 1, y: 0 }
-                      }
+                      whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
                       transition={{
                         delay: Math.min(i, 12) * 0.035,
