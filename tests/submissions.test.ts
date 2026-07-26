@@ -14,9 +14,17 @@ describe("Tenant isolation (negative)", () => {
   let widgetAId: string;
 
   beforeAll(async () => {
-    await prisma.submission.deleteMany();
-    await prisma.widget.deleteMany();
-    await prisma.tenant.deleteMany();
+    // Only wipe disposable isolation tenants. Never deleteMany() the whole DB -
+    // this suite shares the Capstone Neon database with the live demo.
+    await prisma.submission.deleteMany({
+      where: { widget: { tenant: { apiKey: { in: ["iso_a_key", "iso_b_key"] } } } },
+    });
+    await prisma.widget.deleteMany({
+      where: { tenant: { apiKey: { in: ["iso_a_key", "iso_b_key"] } } },
+    });
+    await prisma.tenant.deleteMany({
+      where: { apiKey: { in: ["iso_a_key", "iso_b_key"] } },
+    });
 
     const a = await prisma.tenant.create({
       data: {
@@ -66,6 +74,49 @@ describe("Tenant isolation (negative)", () => {
     expect(ok).toBe(false);
     const still = await widgetsService.get(tenantAId, widgetAId);
     expect(still).not.toBeNull();
+  });
+
+  it("blocks creating more than the demo widget cap", async () => {
+    const { MAX_WIDGETS_PER_TENANT } = await import("@/config/demo.config");
+    const { WidgetLimitError } = await import("@/services/widgets.service");
+    const fillerIds: string[] = [];
+    const existing = await widgetsService.list(tenantAId);
+    while (existing.length + fillerIds.length < MAX_WIDGETS_PER_TENANT) {
+      const created = await widgetsService.create(tenantAId, {
+        type: "popover",
+        name: `Cap fill ${existing.length + fillerIds.length + 1}`,
+        copy: { headline: "Cap" },
+        fields: [{ name: "email", label: "Email", type: "email", required: true }],
+        targeting: {},
+      });
+      fillerIds.push(created.id);
+    }
+    await expect(
+      widgetsService.create(tenantAId, {
+        type: "popover",
+        name: "Over cap",
+        copy: { headline: "Nope" },
+        fields: [{ name: "email", label: "Email", type: "email", required: true }],
+        targeting: {},
+      })
+    ).rejects.toBeInstanceOf(WidgetLimitError);
+
+    for (const id of fillerIds) {
+      await widgetsService.remove(tenantAId, id);
+    }
+  });
+
+  it("tenant can delete its own widget", async () => {
+    const created = await widgetsService.create(tenantBId, {
+      type: "signup",
+      name: "B deletable",
+      copy: { headline: "B" },
+      fields: [{ name: "email", label: "Email", type: "email", required: true }],
+      targeting: {},
+    });
+    const ok = await widgetsService.remove(tenantBId, created.id);
+    expect(ok).toBe(true);
+    expect(await widgetsService.get(tenantBId, created.id)).toBeNull();
   });
 
   it("tenant A list does not include B widgets", async () => {

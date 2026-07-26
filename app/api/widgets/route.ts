@@ -1,5 +1,5 @@
 import { resolveTenantFromRequest, unauthorized } from "@/lib/auth";
-import { widgetsService } from "@/services/widgets.service";
+import { widgetsService, WidgetLimitError } from "@/services/widgets.service";
 import { ZodError } from "zod";
 
 export async function GET(request: Request) {
@@ -24,6 +24,9 @@ export async function POST(request: Request) {
     const widget = await widgetsService.create(tenant.id, body);
     return Response.json({ widget }, { status: 201 });
   } catch (err) {
+    if (err instanceof WidgetLimitError) {
+      return Response.json({ error: err.message, max: err.max }, { status: 409 });
+    }
     if (err instanceof ZodError) {
       return Response.json(
         { error: "Validation failed", details: err.flatten() },

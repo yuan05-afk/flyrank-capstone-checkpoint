@@ -2,9 +2,20 @@ import {
   createWidgetSchema,
   updateWidgetSchema,
 } from "@/lib/validation";
+import { MAX_WIDGETS_PER_TENANT } from "@/config/demo.config";
 import { widgetsRepository } from "@/repositories/widgets.repository";
 import type { Widget } from "@prisma/client";
 import { z } from "zod";
+
+export class WidgetLimitError extends Error {
+  readonly max: number;
+
+  constructor(max = MAX_WIDGETS_PER_TENANT) {
+    super(`Demo workspaces are limited to ${max} widgets. Delete one to create another.`);
+    this.name = "WidgetLimitError";
+    this.max = max;
+  }
+}
 
 function appUrl() {
   return (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(
@@ -34,6 +45,11 @@ function serializeWidget(widget: Widget) {
 
 export const widgetsService = {
   async create(tenantId: string, input: unknown) {
+    const count = await widgetsRepository.countByTenant(tenantId);
+    if (count >= MAX_WIDGETS_PER_TENANT) {
+      throw new WidgetLimitError();
+    }
+
     const data = createWidgetSchema.parse(input);
     const widget = await widgetsRepository.create({
       tenantId,

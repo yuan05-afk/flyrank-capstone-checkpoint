@@ -72,6 +72,28 @@ async function main() {
     },
   });
 
+  const widgetCta = await prisma.widget.create({
+    data: {
+      tenantId: tenantA.id,
+      type: "cta",
+      name: "Pier berth CTA",
+      copy: JSON.stringify({
+        headline: "Reserve a berth",
+        body: "Tap through when the next clearance window opens.",
+        buttonLabel: "Request berth",
+        successMessage: "ACCEPTED - request stamped.",
+      }),
+      fields: JSON.stringify([
+        { name: "email", label: "Email", type: "email", required: true },
+      ]),
+      targeting: JSON.stringify({
+        paths: ["/"],
+        devices: ["desktop", "mobile"],
+      }),
+      active: true,
+    },
+  });
+
   await prisma.widget.create({
     data: {
       tenantId: tenantB.id,
@@ -228,6 +250,8 @@ async function main() {
   console.log("  Tenant B:", tenantB.name, "apiKey=", tenantB.apiKey);
   console.log("  Demo widget A id:", widgetA.id);
   console.log("  Demo popover id:", widgetPopover.id);
+  console.log("  Demo CTA id:", widgetCta.id);
+  console.log("  Tenant A widgets: 3 (demo target)");
   console.log("  Sample submissions:", sampleSubs.length);
   console.log(
     "  Embed:",

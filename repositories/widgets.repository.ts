@@ -27,6 +27,10 @@ export const widgetsRepository = {
     });
   },
 
+  async countByTenant(tenantId: string): Promise<number> {
+    return prisma.widget.count({ where: { tenantId } });
+  },
+
   async findByIdForTenant(
     id: string,
     tenantId: string

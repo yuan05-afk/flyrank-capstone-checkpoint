@@ -18,8 +18,10 @@ import {
   Plus,
   Code2,
   Play,
+  Trash2,
   X,
 } from "lucide-react";
+import { MAX_WIDGETS_PER_TENANT } from "@/config/demo.config";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -223,10 +225,13 @@ export function DashboardClient({
   const shouldReduce = useReducedMotion();
   const [copied, setCopied] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [previewWidget, setPreviewWidget] = useState<Widget | null>(null);
   const [previewStatus, setPreviewStatus] = useState<
     "loading" | "ready" | "submitted" | "error" | null
   >(null);
+  const atWidgetLimit = widgets.length >= MAX_WIDGETS_PER_TENANT;
 
   useEffect(() => {
     if (!previewWidget) return;
@@ -373,9 +378,16 @@ export function DashboardClient({
   }
 
   async function createDemoWidget() {
+    if (atWidgetLimit) {
+      setNotice(
+        `Demo workspaces are limited to ${MAX_WIDGETS_PER_TENANT} widgets. Delete one to create another.`
+      );
+      return;
+    }
     setCreating(true);
+    setNotice(null);
     try {
-      await fetch("/api/widgets", {
+      const response = await fetch("/api/widgets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -383,18 +395,54 @@ export function DashboardClient({
           name: `Widget ${widgets.length + 1}`,
           copy: {
             headline: "Stay in the loop",
-            body: "Leave your email and we’ll follow up.",
+            body: "Leave your email and we will follow up.",
             buttonLabel: "Subscribe",
-            successMessage: "You’re in - thanks!",
+            successMessage: "You are in - thanks!",
           },
           fields: [
             { name: "email", label: "Email", type: "email", required: true },
           ],
         }),
       });
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as {
+          error?: string;
+        } | null;
+        setNotice(payload?.error || "Could not create widget.");
+        return;
+      }
       window.location.reload();
     } finally {
       setCreating(false);
+    }
+  }
+
+  async function deleteWidget(widget: Widget) {
+    const confirmed = window.confirm(
+      `Delete "${widget.name}"? Its submissions will be removed too.`
+    );
+    if (!confirmed) return;
+
+    setDeletingId(widget.id);
+    setNotice(null);
+    try {
+      const response = await fetch(`/api/widgets/${widget.id}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as {
+          error?: string;
+        } | null;
+        setNotice(payload?.error || "Could not delete widget.");
+        return;
+      }
+      if (previewWidget?.id === widget.id) {
+        setPreviewWidget(null);
+        setPreviewStatus(null);
+      }
+      window.location.reload();
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -462,13 +510,23 @@ export function DashboardClient({
             whileTap={shouldReduce ? undefined : { scale: 0.98 }}
             className="btn-primary !text-sm gap-2 self-start md:self-auto"
             onClick={createDemoWidget}
-            disabled={creating}
+            disabled={creating || atWidgetLimit}
+            title={
+              atWidgetLimit
+                ? `Demo limit is ${MAX_WIDGETS_PER_TENANT} widgets`
+                : undefined
+            }
           >
             <Plus className="w-4 h-4" />
             {creating ? "Creating…" : "New widget"}
           </motion.button>
         </motion.section>
 
+        {notice && (
+          <div className="rounded-2xl border border-warn/30 bg-warn/10 px-4 py-3 text-sm text-ink">
+            {notice}
+          </div>
+        )}
         {/* Stats */}
         <motion.section
           className="grid grid-cols-2 lg:grid-cols-4 gap-3"
@@ -543,7 +601,8 @@ export function DashboardClient({
               </div>
               <p className="text-xs text-muted">
                 Test the real embed here, then copy the same snippet to any
-                allowlisted customer origin.
+                allowlisted customer origin. Demo limit: {widgets.length}/
+                {MAX_WIDGETS_PER_TENANT}.
               </p>
             </div>
           </div>
@@ -667,6 +726,16 @@ export function DashboardClient({
                     <Copy className="w-3.5 h-3.5" />
                     {copied === w.id ? "Copied" : "Copy snippet"}
                   </motion.button>
+                  <motion.button
+                    whileHover={shouldReduce ? undefined : { y: -1 }}
+                    whileTap={shouldReduce ? undefined : { scale: 0.98 }}
+                    className="btn-secondary !text-sm gap-2 text-danger border-danger/20 hover:bg-danger/5"
+                    onClick={() => deleteWidget(w)}
+                    disabled={deletingId === w.id}
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    {deletingId === w.id ? "Deleting…" : "Delete"}
+                  </motion.button>
                 </div>
               </motion.div>
             ))}
@@ -678,7 +747,7 @@ export function DashboardClient({
                 <button
                   className="btn-primary !text-sm gap-2 mx-auto"
                   onClick={createDemoWidget}
-                  disabled={creating}
+                  disabled={creating || atWidgetLimit}
                 >
                   <Plus className="w-4 h-4" />
                   New widget

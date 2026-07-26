@@ -20,6 +20,10 @@ describe("Public config delivery", () => {
         apiKey: "config_key_test",
       },
     });
+    await prisma.submission.deleteMany({
+      where: { widget: { tenantId: tenant.id } },
+    });
+    await prisma.widget.deleteMany({ where: { tenantId: tenant.id } });
     const w = await widgetsService.create(tenant.id, {
       type: "popover",
       name: "Config widget",
